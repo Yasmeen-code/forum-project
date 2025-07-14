@@ -1,81 +1,64 @@
 <?php
-require 'includes/db.php';
+session_start();
+require_once 'includes/db.php';
 
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $name = $_POST['name'];
-    $email = $_POST['email'];
-    $password = $_POST['password'];
-    $confirm_password = $_POST['confirm_password'];
-
-    $stmt2 = $conn->prepare("SELECT * FROM users WHERE email = :email");
-    $stmt2->bindParam(':email', $email);
-    $stmt2->execute();
-    $existingUser = $stmt2->fetch(PDO::FETCH_ASSOC);
-    if ($existingUser) {
-        echo "<script>alert('Email already exists! \\n Use another one.');</script>";
-    }
-    if ($password !== $confirm_password) {
-        echo "<script>alert('Passwords do not match!');</script>";
-    } else {
-        try {
-            $stmt = $conn->prepare("INSERT INTO users (name, email, password) VALUES (:name, :email, :password)");
-            $stmt->bindParam(':name', $name);
-            $stmt->bindParam(':email', $email);
-            $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
-            $stmt->bindParam(':password', $hashedPassword);
-            $stmt->execute();
-            echo "<script>alert('Registration successful!');</script>";
-        } catch (PDOException $e) {
-            echo "<script>alert('Error: " . $e->getMessage() . "');</script>";
-        }
-    }
-}
+$stmt = $pdo->query("SELECT threads.*, users.username FROM threads 
+                     JOIN users ON threads.user_id = users.id 
+                     ORDER BY created_at DESC");
+$threads = $stmt->fetchAll();
 ?>
 
 <!DOCTYPE html>
-<html lang="en">
+<html>
 
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Register</title>
-    <link rel="stylesheet" href="register-style.css" />
+  <title>Forum Home</title>
+  <link rel="stylesheet" href="css/forum.css">
+  <style>
+    .threads-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+  </style>
 </head>
 
 <body>
-    <div class="container">
-        <div class="register-box">
-            <form action="" method="post">
-                <h2>Register</h2>
-
-                <div class="input-box">
-                    <input type="text" name="name" required />
-                    <label>Full Name</label>
-                </div>
-
-                <div class="input-box">
-                    <input type="email" name="email" required />
-                    <label>Email</label>
-                </div>
-
-                <div class="input-box">
-                    <input type="password" name="password" required />
-                    <label>Password</label>
-                </div>
-
-                <div class="input-box">
-                    <input type="password" name="confirm_password" required />
-                    <label>Confirm Password</label>
-                </div>
-
-                <button class="btn" type="submit">Register</button>
-
-                <div class="login-link">
-                    <a href="login.php">Already have an account?</a>
-                </div>
-            </form>
-        </div>
+  <div class="navbar">
+    <h2>Forum Threads</h2>
+    <div class="welcome">
+      <?php if (isset($_SESSION['username'])): ?>
+        Welcome, <?= htmlspecialchars($_SESSION['username']) ?> |
+        <a href="create-thread.php">+ New Thread</a> |
+        <a href="logout.php">Logout</a>
+      <?php else: ?>
+        <a href="login.php">Login</a> or <a href="register.php">Register</a>
+      <?php endif; ?>
     </div>
+  </div>
+
+  <div class="threads-grid">
+    <?php if ($threads): ?>
+      <?php foreach ($threads as $thread): ?>
+        <div class="thread-card">
+          <div>
+            <div class="thread-title"><?= htmlspecialchars($thread['title']) ?></div>
+            <div class="thread-snippet">
+              <?= nl2br(htmlspecialchars(substr($thread['content'], 0, 120))) ?>...
+            </div>
+          </div>
+          <div class="view-link">
+            <a href="thread.php?id=<?= $thread['id'] ?>">View More →</a>
+          </div>
+        </div>
+      <?php endforeach; ?>
+    <?php else: ?>
+      <p>No threads yet. Be the first to post!</p>
+    <?php endif; ?>
+  </div>
 </body>
 
 </html>
