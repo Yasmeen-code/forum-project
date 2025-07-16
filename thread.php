@@ -9,7 +9,6 @@ if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
 
 $thread_id = $_GET['id'];
 
-// Get thread data
 $stmt = $pdo->prepare("SELECT threads.*, users.username FROM threads
                        JOIN users ON threads.user_id = users.id
                        WHERE threads.id = :id");
@@ -21,12 +20,10 @@ if (!$thread) {
   exit();
 }
 
-// Get likes count
 $likeStmt = $pdo->prepare("SELECT COUNT(*) FROM likes WHERE thread_id = :thread_id");
 $likeStmt->execute(['thread_id' => $thread_id]);
 $likesCount = $likeStmt->fetchColumn();
 
-// Check if current user liked it
 $userLiked = false;
 if (isset($_SESSION['user_id'])) {
   $checkLikeStmt = $pdo->prepare("SELECT * FROM likes WHERE thread_id = :thread_id AND user_id = :user_id");

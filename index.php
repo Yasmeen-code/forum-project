@@ -2,7 +2,6 @@
 session_start();
 require_once 'includes/db.php';
 
-// جلب كل المواضيع مع عدد اللايكات
 $stmt = $pdo->query("SELECT t.*, u.username, 
                         (SELECT COUNT(*) FROM likes WHERE thread_id = t.id) AS likes_count 
                      FROM threads t 

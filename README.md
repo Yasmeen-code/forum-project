@@ -13,6 +13,7 @@ Users can register, log in, post threads, and view detailed discussion posts.
 - 🔍 View thread details (including full content, author, and image)
 - 📁 Secure image uploading and thread management
 - 🌐 Fully styled with modern UI and responsive design
+- And you can make like for any Post or thread
 
 ---
 
